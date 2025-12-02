@@ -1,0 +1,117 @@
+<?xml version="1.0"?>
+<!-- File Xacro per la descrizione del robot BlueROV2 -->
+<robot name="bluerov2" xmlns:xacro="http://www.ros.org/wiki/xacro" >
+    
+    <!-- Argomenti configurabili -->
+    <xacro:arg name="namespace" default="bluerov2"/>
+    <!-- Se true, abilita plugin e comportamenti per la simulazione -->
+    <xacro:arg name="simulation" default="true"/>
+    <!-- Densità del fluido (acqua) in kg/m^3 -->
+    <xacro:arg name="density" default="1000"/>
+  
+    <!-- Proprietà derivate dagli argomenti -->
+    <xacro:property name="ns" value="$(arg namespace)"/>
+    <xacro:property name="density" value="$(arg density)"/>
+
+    <!-- Dimensioni principali del corpo del robot (in metri) -->
+    <xacro:property name="x_size" value="0.40"/>
+    <xacro:property name="y_size" value="0.25"/>
+    <xacro:property name="z_size" value="0.1"/>
+
+    <!-- Massa totale del robot (in kg) -->
+    <xacro:property name="mass" value="14.8"/>
+      
+    <!-- Massa di ciascuna elica (in kg) -->
+    <xacro:property name="prop_mass" value="0.07"/>
+  
+    <!-- Correzione per il volume di galleggiamento con fattore positivo dell'1% -->
+    <xacro:property name="buoyant_correction" value="${1.01*pow((mass + 6*prop_mass)/(density*x_size*y_size*z_size), 1./3)}"/>
+    <!-- Centro di galleggiamento (asse z) -->
+    <xacro:property name="z_cob" value="${-buoyant_correction*z_size/4}"/>
+    <!-- Centro di gravità (asse z) -->
+    <xacro:property name="z_cog" value="${-buoyant_correction*z_size}"/>
+  
+    <!-- File mesh per la visualizzazione e collisione -->
+    <xacro:property name="visual_mesh_file" value="package://bluerov2_description/meshes/bluerov2_noprop.dae"/>
+    <xacro:property name="collision_mesh_file" value="package://bluerov2_description/meshes/bluerov2_noprop.stl"/>
+
+  <!-- Definizione del link base del veicolo -->
+    <link name="${ns}/base_link">
+    <inertial>
+        <!-- Massa totale -->
+        <mass value="${mass}"/>
+        <!-- Origine dell'inerzia (centro di gravità) -->
+        <origin xyz="0 0 ${z_cog}"/>
+        
+    <!-- Valori di inerzia presi dalla tesi "Model Predictive Control for the BlueROV2" -->
+    <!-- Questi valori possono causare crash in Ignition -->
+<!--         <inertia ixx="0.21" ixy="0.00" ixz="0.00" iyy="0.245" iyz="0.00" izz="0.245"/> -->
+        <inertia ixx="5.2539" ixy="0.0144" ixz="0.3341" iyy="7.9420" iyz="0.026" izz="6.9123"/>
+        
+            <!-- Inerzia per un rettangolo perfetto (commentata) -->
+<!--        <inertia
+        ixx="${mass/12*(y_size*y_size+z_size*z_size)}" ixy="0.0" ixz="0.0"
+        iyy="${mass/12*(x_size*x_size + z_size*z_size)}" iyz="0.0"
+        izz="${mass/12*(x_size*x_size + y_size*y_size)}" />-->
+    </inertial>
+    <visual>
+        <geometry>
+        <!-- Mesh per la visualizzazione -->
+        <mesh filename="${visual_mesh_file}"/>
+        </geometry>
+    </visual>
+    
+    <collision>
+        <!-- Origine della collisione (centro di galleggiamento) -->
+        <origin xyz="0 0 ${z_cob}"/>
+        <!-- Box usato per la simulazione della collisione, dimensionato per la galleggiabilità -->
+        <geometry>
+            <box size="${x_size*buoyant_correction} ${y_size*buoyant_correction} ${z_size*buoyant_correction}"/>
+        </geometry>
+    </collision>
+
+<!--    <gazebo>
+        <velocity_decay>
+            <linear>-250.15 -70.364 -170.955</linear>
+            <angular>1.888 0.761 3.744</angular>
+        </velocity_decay>
+</gazebo>-->
+        
+    </link>
+  
+<!-- Inclusione delle macro per idrodinamica, propulsori e sensori -->
+<xacro:include filename="hydrodynamics.xacro"/>
+<xacro:include filename="thrusters.xacro"/>
+<xacro:include filename="sensors.xacro"/>
+
+  
+<!-- Plugin Gazebo aggiuntivi, abilitati solo se simulation=true -->
+<xacro:if value="$(arg simulation)">
+    <gazebo>
+        <!-- Plugin per pubblicare lo stato delle giunzioni -->
+        <plugin filename="ignition-gazebo-joint-state-publisher-system" name="ignition::gazebo::systems::JointStatePublisher"/>
+        
+        <!-- Plugin per pubblicare l'odometria -->
+        <plugin
+            filename="ignition-gazebo-odometry-publisher-system"
+            name="ignition::gazebo::systems::OdometryPublisher">
+            <odom_frame>world</odom_frame>
+            <dimensions>3</dimensions>
+            <robot_base_frame>${ns}/base_link</robot_base_frame>
+            <odom_publish_frequency>20</odom_publish_frequency>
+        </plugin>
+        
+        <!-- Plugin per pubblicare le pose -->
+        <plugin
+            filename="ignition-gazebo-pose-publisher-system"
+            name="ignition::gazebo::systems::PosePublisher">
+            <publish_link_pose>false</publish_link_pose>
+            <publish_collision_pose>false</publish_collision_pose>
+            <publish_visual_pose>false</publish_visual_pose>
+            <publish_nested_model_pose>true</publish_nested_model_pose>
+        </plugin>
+    </gazebo>
+</xacro:if>
+
+
+</robot>
