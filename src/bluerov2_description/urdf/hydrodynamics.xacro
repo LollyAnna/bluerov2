@@ -1,38 +1,41 @@
 <?xml version="1.0"?>
 
+<!-- Descrizione delle dinamiche idrodinamiche del BlueROV2 per Ignition Gazebo -->
 <xacro>
 
 <gazebo>
+    <!-- Plugin di Ignition Gazebo che applica forze idrodinamiche (massa aggiunta, smorzamenti) -->
     <plugin filename="ignition-gazebo-hydrodynamics-system" name="ignition::gazebo::systems::Hydrodynamics">
 
+<!--     Densità del fluido (acqua). Può essere passato come argomento da bluerov2.xacro -->
 <!--     <density>${density}</density> -->
         
-    <!-- Ignition notations from Handbook of Marine Craft, Fossen, 2011 -->
+    <!-- Convenzioni/Notazioni secondo il "Handbook of Marine Craft" di Fossen (2011) usate da Ignition -->
         
+    <!-- Link del veicolo a cui applicare le forze idrodinamiche -->
     <link_name>${ns}/base_link</link_name>
 
         
-    <!-- BlueROV2 heavy values from "6-DoF Modelling and Control of a Remotely Operated Vehicle"
-        Wu, Master thesis, Flinder University, 2018  -->
-    <!-- Negative diagonal values of added mass matrix [Fossen (6.38)] -->
-    <xDotU>-5.5</xDotU>
-    <yDotV>-12.7</yDotV>
-    <zDotW>-14.57</zDotW>
-    <kDotP>-0.12</kDotP>
-    <mDotQ>-0.12</mDotQ>
-    <nDotR>-0.12</nDotR>
+    <!-- Valori del BlueROV2 (versione heavy) da "6-DoF Modelling and Control of a Remotely Operated Vehicle",
+         Wu, Master thesis, Flinders University, 2018 -->
+    <!-- Valori diagonali negativi della matrice di massa aggiunta [Fossen (6.38)] -->
+    <xDotU>-5.5</xDotU>   <!-- Massa aggiunta in surge -->
+    <yDotV>-12.7</yDotV>  <!-- Massa aggiunta in sway -->
+    <zDotW>-14.57</zDotW> <!-- Massa aggiunta in heave -->
+    <kDotP>-0.12</kDotP>  <!-- Massa aggiunta in roll -->
+    <mDotQ>-0.12</mDotQ>  <!-- Massa aggiunta in pitch -->
+    <nDotR>-0.12</nDotR>  <!-- Massa aggiunta in yaw -->
     
     
-    <!-- From "Numerical Modelling and Experimental Testing of the Hydrodynamic Characteristics 
-        for an Open-Frame Remotely Operated Vehicle",  Li et al, Marine Science and Engineering, 2020         -->        
-    <!-- Negative linear damping [Fossen (6.62)] -->    
+    <!-- Valori alternativi dalla letteratura (Li et al., 2020) - smorzamenti lineari/quadratici -->        
+    <!-- Smorzamento lineare negativo [Fossen (6.62)] -->    
 <!--    <xU>-1.31</xU>    
     <yV>-9.14</yV>
     <zW>-2.015</zW>
     <kP>-0.</kP>
     <mQ>-0.</mQ>
     <nR>-0.</nR>-->                   
-    <!-- Negative quadratic damping [Fossen (6.62)] -->          
+    <!-- Smorzamento quadratico negativo [Fossen (6.62)] -->          
 <!--      <xUabsU>-33.800000000000004</xUabsU>
       <yVabsV>-54.26875</yVabsV>
       <zWabsW>-73.37135</zWabsW>
@@ -40,17 +43,17 @@
       <mQabsQ>-40.0</mQabsQ>
       <nRabsR>-40.0</nRabsR>-->
         
-    <!-- BlueROV2 values from "Model Predictive Control for the BlueROV2", 
-        Emil Már Einarsson, Andris Lipenitis, Master thesis, 2020  -->        
-    <!-- Negative linear damping -->    
-    <xU>-25.15</xU>
-    <yV>-7.364</yV>
-    <zW>-17.955</zW>
-    <kP>-10.888</kP>
-    <mQ>-20.761</mQ>
-    <nR>-3.744</nR>
+    <!-- Valori del BlueROV2 da "Model Predictive Control for the BlueROV2",
+         Emil Már Einarsson, Andris Lipenitis, Master thesis, 2020 -->        
+    <!-- Smorzamenti lineari negativi (proporzionali alla velocità) -->    
+    <xU>-25.15</xU>   <!-- Damping in surge -->
+    <yV>-7.364</yV>   <!-- Damping in sway -->
+    <zW>-17.955</zW>  <!-- Damping in heave -->
+    <kP>-10.888</kP>  <!-- Damping in roll -->
+    <mQ>-20.761</mQ>  <!-- Damping in pitch -->
+    <nR>-3.744</nR>   <!-- Damping in yaw -->
                    
-    <!-- Negative quadratic damping -->          
+    <!-- Smorzamenti quadratici negativi (proporzionali al quadrato della velocità) -->          
     <xUabsU>-17.77</xUabsU>
     <yVabsV>-125.9</yVabsV>
     <zWabsW>-72.36</zWabsW>

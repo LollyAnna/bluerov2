@@ -1,37 +1,46 @@
 <?xml version="1.0" ?>
+<!-- Mondo di simulazione "ocean" per Ignition/Gazebo con fisica, sensori e piano d'acqua -->
 <sdf version="1.6">
   <world name="ocean">
 
+    <!-- Configurazione della scena: disattiva la griglia -->
     <scene>
       <grid>false</grid>
     </scene>
 
 
+    <!-- Motore fisico ODE: passo di simulazione 10ms e fattore tempo reale -->
     <physics name="10ms" type="ode">
       <max_step_size>0.01</max_step_size>
       <real_time_factor>1.0</real_time_factor>
     </physics>
+    <!-- Sistema fisico di Ignition -->
     <plugin
       filename="ignition-gazebo-physics-system"
       name="ignition::gazebo::systems::Physics">
     </plugin>
+    <!-- Abilita comandi utente (spawn, remove, move) -->
     <plugin
       filename="ignition-gazebo-user-commands-system"
       name="ignition::gazebo::systems::UserCommands">
     </plugin>
+    <!-- Broadcaster della scena per la visualizzazione -->
     <plugin
       filename="ignition-gazebo-scene-broadcaster-system"
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
+    <!-- Sistema IMU (necessario per sensori IMU) -->
     <plugin
       filename="ignition-gazebo-imu-system"
       name="ignition::gazebo::systems::Imu">
     </plugin>
+    <!-- Sistema sensori (camera, lidar, sonar); usa motore di rendering ogre2 -->
     <plugin
       filename="ignition-gazebo-sensors-system"
       name="ignition::gazebo::systems::Sensors">
       <render_engine>ogre2</render_engine>
     </plugin>
+    <!-- Sistema di galleggiamento: densità dell'acqua 1000 kg/m^3, aria sopra 0m con densità 1 -->
     <plugin
       filename="ignition-gazebo-buoyancy-system"
       name="ignition::gazebo::systems::Buoyancy">
@@ -44,6 +53,7 @@
       </graded_buoyancy>
     </plugin>
 
+    <!-- Luce direzionale "sun" per illuminazione della scena -->
     <light type="directional" name="sun">
       <cast_shadows>true</cast_shadows>
       <pose>0 0 10 0 0 0</pose>
@@ -58,6 +68,7 @@
       <direction>-0.5 0.1 -0.9</direction>
     </light>
 
+    <!-- Piano dell'acqua (visual) per riferimento della superficie -->
     <model name="water_plane">
       <static>true</static>
       <link name="link">

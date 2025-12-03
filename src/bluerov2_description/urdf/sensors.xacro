@@ -1,11 +1,16 @@
 <?xml version="1.0"?>
+<!-- Sensori del BlueROV2: IMU, camera con tilt, sonar Ping360 e controller -->
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
+<!-- Offset X della camera rispetto al base_link e valore di PI -->
 <xacro:property name="x_camera" value="0.02"/>
 <xacro:property name="PI" value="3.1415927"/>
 
+<!-- Macro per creare un link IMU e un sensore IMU in Gazebo -->
 <xacro:macro name="imu" params="name *origin">
+    <!-- Link del sensore IMU -->
     <link name="${ns}/${name}"/>
+    <!-- Configurazione del sensore IMU in Gazebo -->
     <gazebo reference="${ns}/${name}">
     <sensor name="${name}_imu" type="imu">
             <always_on>1</always_on>
@@ -14,6 +19,7 @@
             <topic>${ns}/${name}</topic>
             <gz_frame_id>${ns}/${name}</gz_frame_id>
       <imu>
+        <!-- Rumore gaussiano su velocità angolare (x,y,z) -->
         <angular_velocity>
           <x>
             <noise type="gaussian">
@@ -49,6 +55,7 @@
             </noise>
           </z>
         </angular_velocity>
+        <!-- Rumore gaussiano su accelerazione lineare (x,y,z) -->
         <linear_acceleration>
           <x>
             <noise type="gaussian">
@@ -84,12 +91,14 @@
             </noise>
           </z>
         </linear_acceleration>
+        <!-- Riferimento di orientazione ENU (East-North-Up) -->
         <orientation_reference_frame>
           <localization>ENU</localization>
         </orientation_reference_frame>
       </imu>
         </sensor>
       </gazebo>
+     <!-- Giunto fisso per collegare l'IMU al base_link del veicolo -->
      <joint name="${name}" type="fixed">
         <xacro:insert_block name="origin"/>
         <parent link="${ns}/base_link"/>
@@ -97,21 +106,24 @@
     </joint>
 </xacro:macro>
 
+<!-- Istanziazione IMU tipo MPU -->
 <xacro:imu name="mpu">
-    <origin xyz="0.1 0 0" rpy="0 0 ${-PI/2}"/>
+  <origin xyz="0.1 0 0" rpy="0 0 ${-PI/2}"/>
 </xacro:imu>
 
+<!-- Istanziazione IMU tipo LSM -->
 <xacro:imu name="lsm">
-    <origin xyz="0.1 0 0" rpy="0 0 ${-PI/2}"/>
+  <origin xyz="0.1 0 0" rpy="0 0 ${-PI/2}"/>
 </xacro:imu>
 
   
-  <!-- Pressure Sensor  -->
+  <!-- Sensore di pressione (barometro) - opzionale/commentato -->
 <!--  <xacro:default_pressure parent_link="${ns}/base_link" sensor_name="baro">
     <origin xyz="0 0 0" rpy="0 0 0"/>
   </xacro:default_pressure>-->
   
   
+  <!-- Link della camera con inerzia semplificata -->
   <link name="${ns}/camera">
     <inertial>
     <mass value="0.015"/>
@@ -125,6 +137,7 @@
     </inertial>
  </link> 
 
+<!-- Giunto di tilt della camera (asse Y) -->
 <joint name="tilt" type="revolute">
     <parent link="${ns}/base_link"/>
     <child link="${ns}/camera"/>
@@ -134,14 +147,17 @@
     <dynamics damping="0.8"/>
 </joint>
 
+<!-- Link del frame ottico della camera (convenzione ROS) -->
 <link name="${ns}/camera_optical"/>
 
+<!-- Giunto fisso tra camera e frame ottico -->
 <joint name="camera_optical" type="fixed">
     <parent link="${ns}/camera"/>
     <child link="${ns}/camera_optical"/>
     <origin rpy="${-PI/2} 0 ${-PI/2}"/>
 </joint>
 
+<!-- Link del sonar Ping360 -->
 <link name="${ns}/sonar">
     <visual>
       <origin xyz="0 0 -0.022" rpy="0 0 0"/>
@@ -153,12 +169,14 @@
     </visual>
 </link>
 
+<!-- Giunto fisso per montare il sonar sul base_link -->
 <joint name="sonar" type="fixed">
     <parent link="${ns}/base_link"/>
     <child link="${ns}/sonar"/>
     <origin xyz="0.135 0.108 0.118"/>
 </joint>
 
+<!-- Sensore sonar basato su GPU Ray -->
 <gazebo reference="${ns}/sonar">
   <sensor type="gpu_ray" name="ping360_sonar">
     <update_rate>5</update_rate>
@@ -194,7 +212,7 @@
   </sensor>
 </gazebo>
 
-
+<!-- Controller PID di posizione per il giunto tilt della camera -->
 <gazebo>
     <plugin filename="ignition-gazebo-joint-position-controller-system" name="ignition::gazebo::systems::JointPositionController">
         <joint_name>tilt</joint_name>
@@ -206,6 +224,7 @@
     </plugin>
 </gazebo>
 
+ <!-- Sensore camera RGB con frame ottico e parametri immagine -->
  <gazebo reference="${ns}/camera">
   <sensor name="camera" type="camera">
     <camera>
@@ -227,7 +246,4 @@
     <enable_metrics>false</enable_metrics>
   </sensor>
 </gazebo>
-
-
-
 </robot>
